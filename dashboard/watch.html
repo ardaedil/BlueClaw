@@ -1,0 +1,10 @@
+<!doctype html>
+<html><head><meta charset='UTF-8'><meta name='viewport' content='width=device-width, initial-scale=1.0'><script src='https://cdn.tailwindcss.com'></script><title>Watch Detail</title></head>
+<body class='bg-slate-100'><div class='max-w-4xl mx-auto p-6'><a href='/' class='text-blue-600'>&larr; Back</a><h1 id='title' class='text-2xl font-bold my-4'></h1><div id='listings' class='space-y-3'></div></div>
+<script>
+const id = new URLSearchParams(location.search).get('id');
+fetch('/api/watches/'+id).then(r=>r.json()).then(w=>{
+ document.getElementById('title').textContent = w.title + ' (' + w.query + ')';
+ document.getElementById('listings').innerHTML = (w.seenListings||[]).map(l => `<div class='bg-white p-3 rounded shadow'><a href='${l.url}' target='_blank' class='font-medium text-blue-600'>${l.title}</a><div>Score: ${l.lastScore||'-'}</div><div class='text-sm text-slate-600'>Why surfaced: ${l.lastScoreExplanation||'N/A'}</div></div>`).join('');
+});
+</script></body></html>
