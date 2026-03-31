@@ -19,32 +19,51 @@ BlueClaw is an OpenClaw-powered autonomous eBay watch agent. It continuously pol
 - OpenClaw action bridge endpoint
 - Mock mode for reliable demos
 
-## Setup
+## Local setup (exact order)
 1. Install deps:
    ```bash
    npm install
    ```
-2. Copy env:
+2. Copy env file:
    ```bash
    cp .env.example .env
    ```
-3. Generate + migrate + seed:
+3. Generate Prisma client:
    ```bash
    npm run prisma:generate
-   npm run prisma:migrate
-   npm run prisma:seed
    ```
-4. Start:
+4. Apply local SQLite migration:
+   ```bash
+   npm run prisma:migrate
+   ```
+5. (Optional but recommended) Seed demo data:
+   ```bash
+   npm run db:seed
+   ```
+6. Run tests:
+   ```bash
+   npm test
+   ```
+7. Run app:
    ```bash
    npm run dev
    ```
-5. Open `http://localhost:3000`
+8. Open dashboard at `http://localhost:3000`.
 
-## Prisma notes
+## Prisma + SQLite behavior
 - Schema: `prisma/schema.prisma`
-- Migration command: `npm run prisma:migrate`
-- Seed command: `npm run prisma:seed`
-- SQLite file: `blueclaw.db` (from `DATABASE_URL=file:./blueclaw.db`)
+- Local dev DB default: `prisma/blueclaw.db`
+- Test DB default: `prisma/blueclaw.test.db`
+- `prisma/.env` is committed with a SQLite `DATABASE_URL` fallback so `npx prisma migrate dev` works out of the box.
+- Tests run against the isolated test database and automatically `db push` before execution.
+
+## Scripts
+- `npm run dev` — run API + dashboard dev server
+- `npm run build` — compile TypeScript
+- `npm test` — run test suite (isolated Prisma test DB)
+- `npm run prisma:generate` — generate Prisma client
+- `npm run prisma:migrate` — apply Prisma migrations (SQLite)
+- `npm run prisma:seed` / `npm run db:seed` — seed demo data
 
 ## eBay mode
 - `EBAY_MOCK_MODE=true` uses `src/mocks/ebay-search-response.json`.
@@ -66,17 +85,6 @@ BlueClaw is an OpenClaw-powered autonomous eBay watch agent. It continuously pol
 ```bash
 docker compose up
 ```
-
-## Tests
-```bash
-npm test
-```
-Includes:
-- scoring unit tests
-- dedup unit tests
-- polling integration test
-- duplicate suppression check
-- mock mode path validation via integration flow
 
 ## Demo checklist
 - Create watch via dashboard or `/api/openclaw/action`
