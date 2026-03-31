@@ -1,0 +1,96 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String     @id @default(cuid())
+  name      String
+  watchJobs WatchJob[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model WatchJob {
+  id                     String              @id @default(cuid())
+  userId                 String
+  user                   User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title                  String
+  rawPrompt              String?
+  query                  String
+  maxPrice               Float?
+  preferredKeywords      String              @default("[]")
+  excludedKeywords       String              @default("[]")
+  conditionFilters       String              @default("[]")
+  sellerRatingThreshold  Float?
+  shippingPreferences    String?
+  notificationThreshold  Float               @default(70)
+  pollingIntervalMinutes Int                 @default(30)
+  isActive               Boolean             @default(true)
+  lastPolledAt           DateTime?
+  seenListings           SeenListing[]
+  notifications          MatchNotification[]
+  pollRuns               PollRun[]
+  createdAt              DateTime            @default(now())
+  updatedAt              DateTime            @updatedAt
+
+  @@index([userId, isActive])
+}
+
+model SeenListing {
+  id                   String              @id @default(cuid())
+  watchJobId           String
+  watchJob             WatchJob            @relation(fields: [watchJobId], references: [id], onDelete: Cascade)
+  ebayItemId           String
+  title                String
+  price                Float?
+  url                  String
+  sellerName           String?
+  sellerFeedbackPercent Float?
+  condition            String?
+  location             String?
+  firstSeenAt          DateTime            @default(now())
+  lastSeenAt           DateTime            @default(now())
+  lastScore            Float?
+  lastScoreExplanation String?
+  metadataJson         String?
+  notifications        MatchNotification[]
+
+  @@unique([watchJobId, ebayItemId])
+  @@index([watchJobId, lastSeenAt])
+}
+
+model MatchNotification {
+  id           String      @id @default(cuid())
+  watchJobId   String
+  watchJob     WatchJob    @relation(fields: [watchJobId], references: [id], onDelete: Cascade)
+  seenListingId String
+  seenListing  SeenListing @relation(fields: [seenListingId], references: [id], onDelete: Cascade)
+  score        Float
+  explanation  String
+  reasonsJson  String      @default("[]")
+  wasDelivered Boolean     @default(false)
+  deliveredAt  DateTime?
+  createdAt    DateTime    @default(now())
+
+  @@index([watchJobId, createdAt])
+}
+
+model PollRun {
+  id             String    @id @default(cuid())
+  watchJobId      String
+  watchJob        WatchJob @relation(fields: [watchJobId], references: [id], onDelete: Cascade)
+  startedAt       DateTime @default(now())
+  completedAt     DateTime?
+  success         Boolean  @default(false)
+  resultCount     Int      @default(0)
+  newListingCount Int      @default(0)
+  notifiedCount   Int      @default(0)
+  errorMessage    String?
+
+  @@index([watchJobId, startedAt])
+}

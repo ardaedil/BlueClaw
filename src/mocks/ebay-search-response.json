@@ -1,0 +1,24 @@
+{
+  "itemSummaries": [
+    {
+      "itemId": "v1|111111|0",
+      "title": "Sony PS5 Console Disc Edition Buy It Now",
+      "price": { "value": "289.99", "currency": "USD" },
+      "itemWebUrl": "https://www.ebay.com/itm/111111",
+      "condition": "Used",
+      "buyingOptions": ["FIXED_PRICE"],
+      "seller": { "username": "trusted-seller", "feedbackPercentage": "99.8" },
+      "itemLocation": { "country": "US" }
+    },
+    {
+      "itemId": "v1|222222|0",
+      "title": "PS5 for parts AS-IS",
+      "price": { "value": "199.00", "currency": "USD" },
+      "itemWebUrl": "https://www.ebay.com/itm/222222",
+      "condition": "For parts or not working",
+      "buyingOptions": ["AUCTION"],
+      "seller": { "username": "low-feedback", "feedbackPercentage": "85.0" },
+      "itemLocation": { "country": "US" }
+    }
+  ]
+}
