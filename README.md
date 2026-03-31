@@ -75,6 +75,19 @@ BlueClaw is an OpenClaw-powered autonomous eBay watch agent. It continuously pol
 - BlueClaw executes action with least privilege.
 - BlueClaw sends back alerts to `OPENCLAW_WEBHOOK_URL` (optional).
 
+
+## OpenClaw workspace files
+BlueClaw includes OpenClaw workspace context files at the repository root:
+
+- `AGENTS.md`
+- `SOUL.md`
+- `MEMORY.md`
+- `TOOLS.md`
+- `IDENTITY.md`
+- `USER.md`
+
+These files are intended to be mounted/copied into the OpenClaw workspace context for this project so OpenClaw can follow BlueClaw-specific behavior, tone, memory, and tool-usage guidance during demos.
+
 ## VPS deployment notes
 - Set `NODE_ENV=production`.
 - Use `npm run build && npm run start`.
