@@ -5,8 +5,11 @@ export async function handleOpenClawAction(action: string, payload: any) {
   switch (action) {
     case 'create_watch':
       return createWatch(payload);
-    case 'list_watches':
-      return listWatches(payload?.userId);
+    case 'list_watches': {
+      const watches = await listWatches(payload?.userId);
+      if (!payload?.activeOnly) return watches;
+      return watches.filter((watch: { isActive: boolean }) => watch.isActive);
+    }
     case 'update_watch':
       return updateWatch(payload.id, payload.data);
     case 'pause_watch':

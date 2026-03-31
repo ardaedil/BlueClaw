@@ -5,6 +5,8 @@ import { prisma } from '../db/client.js';
 import { pollAllActiveWatches, pollWatch } from '../modules/polling/service.js';
 import { handleOpenClawAction } from '../modules/openclaw/bridge.js';
 import { env } from '../config/env.js';
+import { parseOpenClawCommand } from '../modules/openclaw/nl.js';
+import { listOpenClawDemoEvents, recordOpenClawDemoEvent } from '../modules/openclaw/webhook-demo.js';
 
 export const apiRouter = Router();
 
@@ -41,4 +43,25 @@ apiRouter.post('/poll/run-all', async (_req, res) => res.json(await pollAllActiv
 apiRouter.post('/openclaw/action', async (req, res) => {
   const parsed = z.object({ action: z.string(), payload: z.any().optional() }).parse(req.body);
   res.json(await handleOpenClawAction(parsed.action, parsed.payload));
+});
+
+apiRouter.post('/openclaw/command', async (req, res) => {
+  const parsed = z.object({ command: z.string().min(2), userId: z.string() }).parse(req.body);
+  const interpreted = parseOpenClawCommand(parsed.command, parsed.userId);
+  const result = await handleOpenClawAction(interpreted.action, interpreted.payload);
+
+  res.json({
+    interpretation: interpreted,
+    result
+  });
+});
+
+apiRouter.post('/openclaw/webhook-demo', (req, res) => {
+  const parsed = z.object({ event: z.string(), payload: z.any().optional() }).parse(req.body);
+  recordOpenClawDemoEvent(parsed.event, parsed.payload);
+  res.json({ ok: true });
+});
+
+apiRouter.get('/openclaw/webhook-demo/events', (_req, res) => {
+  res.json(listOpenClawDemoEvents());
 });

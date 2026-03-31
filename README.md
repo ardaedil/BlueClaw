@@ -92,3 +92,30 @@ docker compose up
 - Verify new match appears in recent matches
 - Verify notification record appears
 - Re-run and verify duplicates are suppressed
+
+
+## OpenClaw demo flow (end-to-end)
+1. Set webhook loopback for local demo in `.env`:
+   ```bash
+   OPENCLAW_WEBHOOK_URL=http://localhost:3000/api/openclaw/webhook-demo
+   ```
+2. Start BlueClaw:
+   ```bash
+   npm run dev
+   ```
+3. Simulate an OpenClaw natural-language command:
+   ```bash
+   curl -X POST http://localhost:3000/api/openclaw/command \
+     -H "Content-Type: application/json" \
+     -d '{"userId":"demo-user","command":"Watch eBay for a PS5 under $300"}'
+   ```
+4. Trigger polling:
+   ```bash
+   curl -X POST http://localhost:3000/api/poll/run-all
+   ```
+5. Verify alert delivery payloads received by the demo webhook endpoint:
+   ```bash
+   curl http://localhost:3000/api/openclaw/webhook-demo/events
+   ```
+
+In production, replace the loopback webhook URL with your actual OpenClaw inbound webhook endpoint.

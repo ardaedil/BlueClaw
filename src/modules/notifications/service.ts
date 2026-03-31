@@ -15,6 +15,10 @@ export async function createNotification(params: {
       score: params.score,
       explanation: params.explanation,
       reasonsJson: JSON.stringify(params.reasons)
+    },
+    include: {
+      seenListing: true,
+      watchJob: true
     }
   });
 
@@ -28,8 +32,15 @@ export async function createNotification(params: {
           payload: {
             notificationId: notification.id,
             watchJobId: params.watchJobId,
+            watchTitle: notification.watchJob.title,
             score: params.score,
-            explanation: params.explanation
+            explanation: params.explanation,
+            listing: {
+              ebayItemId: notification.seenListing.ebayItemId,
+              title: notification.seenListing.title,
+              price: notification.seenListing.price,
+              url: notification.seenListing.url
+            }
           }
         })
       });
