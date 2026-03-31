@@ -1,0 +1,96 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>BlueClaw Demo Dashboard</title>
+  </head>
+  <body class="bg-slate-100 text-slate-900">
+    <div class="max-w-7xl mx-auto p-6 space-y-6">
+      <header class="flex justify-between items-center">
+        <h1 class="text-3xl font-bold">BlueClaw Dashboard</h1>
+        <button id="runAll" class="px-4 py-2 bg-blue-600 text-white rounded">Run All Watches Now</button>
+      </header>
+
+      <section class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="bg-white rounded p-4 shadow">
+          <h2 class="font-semibold mb-3">Create / Update Watch</h2>
+          <form id="watchForm" class="space-y-2">
+            <input name="id" placeholder="Watch ID (for updates optional)" class="w-full border rounded p-2" />
+            <input name="userId" value="demo-user" class="w-full border rounded p-2" />
+            <input name="title" placeholder="PS5 under $300" class="w-full border rounded p-2" required />
+            <input name="query" placeholder="PlayStation 5" class="w-full border rounded p-2" required />
+            <input name="maxPrice" type="number" placeholder="300" class="w-full border rounded p-2" />
+            <input name="preferredKeywords" placeholder="ps5, console, buy it now" class="w-full border rounded p-2" />
+            <input name="excludedKeywords" placeholder="parts, broken" class="w-full border rounded p-2" />
+            <button class="px-4 py-2 bg-emerald-600 text-white rounded">Save</button>
+          </form>
+        </div>
+
+        <div class="bg-white rounded p-4 shadow">
+          <h2 class="font-semibold mb-3">Recent Notifications</h2>
+          <ul id="notifications" class="space-y-2 text-sm"></ul>
+        </div>
+      </section>
+
+      <section class="bg-white rounded p-4 shadow">
+        <h2 class="font-semibold mb-3">Active Watches</h2>
+        <div id="watches" class="space-y-2"></div>
+      </section>
+
+      <section class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="bg-white rounded p-4 shadow">
+          <h2 class="font-semibold mb-3">Recent Matches</h2>
+          <ul id="matches" class="space-y-2 text-sm"></ul>
+        </div>
+        <div class="bg-white rounded p-4 shadow">
+          <h2 class="font-semibold mb-3">Poll History</h2>
+          <ul id="pollRuns" class="space-y-2 text-sm"></ul>
+        </div>
+      </section>
+    </div>
+<script>
+const api = (p,opts={})=>fetch('/api'+p,{headers:{'Content-Type':'application/json'},...opts}).then(r=>r.json());
+
+async function refresh(){
+  const [watches,matches,notifications,polls]=await Promise.all([
+    api('/watches'),api('/matches/recent'),api('/notifications'),api('/poll-runs')
+  ]);
+
+  document.getElementById('watches').innerHTML=watches.map(w=>`<div class='border rounded p-2 flex justify-between'>
+    <div><div class='font-medium'>${w.title}</div><div class='text-xs'>${w.query} • threshold ${w.notificationThreshold}</div></div>
+    <div class='space-x-2'>
+      <button onclick="runOne('${w.id}')" class='px-2 py-1 bg-blue-500 text-white rounded'>Run now</button>
+      <button onclick="toggle('${w.id}',${!w.isActive})" class='px-2 py-1 bg-amber-500 text-white rounded'>${w.isActive?'Pause':'Resume'}</button>
+      <a class='px-2 py-1 bg-slate-500 text-white rounded' href='/watch.html?id=${w.id}'>Detail</a>
+    </div>
+  </div>`).join('');
+
+  document.getElementById('matches').innerHTML=matches.map(m=>`<li class='border-b pb-2'><a target='_blank' href='${m.url}' class='font-medium text-blue-600'>${m.title}</a><div>${m.lastScore ?? '-'} • ${m.lastScoreExplanation ?? ''}</div></li>`).join('');
+  document.getElementById('notifications').innerHTML=notifications.map(n=>`<li class='border-b pb-2'>${n.watchJob.title}: ${n.explanation} (score ${n.score})</li>`).join('');
+  document.getElementById('pollRuns').innerHTML=polls.map(p=>`<li class='border-b pb-2'>${p.watchJob.title}: new ${p.newListingCount}, notified ${p.notifiedCount}, success ${p.success}</li>`).join('');
+}
+
+async function runOne(id){await api(`/poll/${id}/run`,{method:'POST'});refresh();}
+async function toggle(id,isActive){await api(`/watches/${id}`,{method:'PATCH',body:JSON.stringify({isActive})});refresh();}
+
+document.getElementById('runAll').onclick=async()=>{await api('/poll/run-all',{method:'POST'});refresh();};
+
+document.getElementById('watchForm').onsubmit=async(e)=>{
+  e.preventDefault();
+  const f=new FormData(e.target);
+  const payload=Object.fromEntries(f.entries());
+  payload.maxPrice=payload.maxPrice?Number(payload.maxPrice):undefined;
+  const id=payload.id; delete payload.id;
+  const method=id?'PATCH':'POST';
+  const path=id?`/watches/${id}`:'/watches';
+  await api(path,{method,body:JSON.stringify(payload)});
+  e.target.reset();
+  refresh();
+};
+
+refresh();
+</script>
+  </body>
+</html>
